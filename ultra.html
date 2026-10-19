@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>날씨 한눈에 | 오늘의 날씨</title>
+<style>
+:root {
+  --blue: #2786cf;
+  --dark: #163653;
+  --muted: #66839b;
+  --glass: rgba(255,255,255,.78);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: "Noto Sans KR", Arial, sans-serif;
+  color: var(--dark);
+  background: linear-gradient(160deg,#8bd5ff 0%,#d8f2ff 42%,#f5fbff 100%);
+  min-height: 100vh;
+}
+button { font: inherit; }
+.background-sun {
+  position: fixed; top: 70px; right: 8%;
+  width: 210px; height: 210px; border-radius: 50%;
+  background: #fff2a4; opacity: .48; filter: blur(8px);
+  pointer-events: none;
+}
+.cloud {
+  position: fixed; opacity: .18; font-size: 70px;
+  animation: float 7s ease-in-out infinite; pointer-events: none;
+}
+.cloud.a { top: 19%; left: 3%; }
+.cloud.b { top: 55%; right: 3%; animation-delay: -3s; }
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+nav {
+  max-width: 1050px; margin: auto; padding: 22px 22px;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 14px;
+}
+.logo { font-weight: 900; font-size: 21px; }
+nav a { color: var(--dark); text-decoration: none; font-size: 14px; font-weight: 700; }
+.nav-links { display: flex; gap: 18px; flex-wrap: wrap; }
+main { max-width: 1000px; padding: 10px 20px 55px; margin: auto; }
+.panel {
+  position: relative; border: 1px solid rgba(255,255,255,.9);
+  background: var(--glass); border-radius: 28px; padding: 28px;
+  box-shadow: 0 16px 45px rgba(38,113,158,.12);
+  backdrop-filter: blur(12px); margin-bottom: 22px;
+}
+.eyebrow { color: var(--muted); font-size: 14px; font-weight: 700; }
+h1 { font-size: clamp(29px,5vw,43px); margin: 10px 0; letter-spacing: -1.5px; }
+h2 { font-size: 23px; margin: 0 0 18px; }
+p { line-height: 1.7; }
+.hero-grid { display: grid; grid-template-columns: 1.2fr .8fr; align-items: center; gap: 20px; }
+.temperature { font-size: clamp(80px,14vw,125px); font-weight: 800; letter-spacing: -8px; line-height: 1.1; }
+.status { font-size: 20px; color: #53738c; font-weight: 700; }
+.sun-icon { font-size: clamp(100px,18vw,165px); text-align: center; filter: drop-shadow(0 12px 18px #f5b1303b); }
+.tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+.tag { background: #e5f5ff; color: #2877b3; border-radius: 30px; padding: 8px 12px; font-size: 13px; font-weight: 700; }
+.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.section-heading h2 { margin: 0; }
+.small-note { font-size: 12px; color: var(--muted); }
+.stats, .hourly, .week, .tips { display: grid; gap: 12px; }
+.stats { grid-template-columns: repeat(3,1fr); }
+.hourly { grid-template-columns: repeat(4,1fr); }
+.week { grid-template-columns: repeat(7,minmax(0,1fr)); }
+.tips { grid-template-columns: repeat(2,1fr); }
+.stat, .forecast-card, .tip {
+  background: rgba(255,255,255,.76); border: 1px solid #e4f1f8;
+  border-radius: 19px; padding: 17px 12px; text-align: center;
+}
+.stat-icon, .weather-icon { font-size: 26px; }
+.stat-label { display: block; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.stat-value { display: block; margin-top: 5px; font-size: 19px; font-weight: 800; }
+.forecast-time { color: var(--muted); font-size: 13px; }
+.forecast-temp { font-weight: 800; font-size: 19px; margin-top: 9px; }
+.week .forecast-card { padding: 16px 5px; }
+.week .weather-icon { font-size: 22px; }
+.week .forecast-temp { font-size: 15px; }
+.tip { text-align: left; display: flex; gap: 12px; align-items: start; }
+.tip-icon { font-size: 28px; }
+.tip strong { display: block; margin-bottom: 5px; }
+.tip p { margin: 0; color: var(--muted); font-size: 13px; }
+.bar-wrap { background: #e3f2fc; border-radius: 99px; height: 10px; overflow: hidden; margin-top: 12px; }
+.bar { width: 45%; height: 100%; border-radius: 99px; background: linear-gradient(90deg,#65c8f4,#2786cf); }
+.notice { color: #718a9e; font-size: 12px; text-align: center; line-height: 1.7; }
+footer { text-align: center; padding: 40px 20px 55px; color: #58778f; }
+.footer-big { font-size: clamp(38px,8vw,70px); font-weight: 900; letter-spacing: 4px; color: #2079b8; margin-top: 18px; text-shadow: 0 5px 0 #fff; }
+.back-top { display: inline-block; margin-top: 15px; color: #2877b3; font-weight: 800; text-decoration: none; }
+@media(max-width:700px) {
+  .hero-grid { grid-template-columns: 1fr; }
+  .sun-icon { position: absolute; right: 25px; top: 75px; font-size: 80px; opacity: .85; }
+  .hourly { grid-template-columns: repeat(2,1fr); }
+  .week { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .stats { gap: 7px; }
+  .stat { padding: 14px 5px; }
+  .stat-value { font-size: 16px; }
+  .panel { padding: 22px 17px; }
+  .nav-links { gap: 10px; }
+}
+@media(max-width:380px) {
+  .week { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .tips { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="background-sun"></div>
+<div class="cloud a">☁️</div><div class="cloud b">☁️</div>
+
+<nav>
+  <div class="logo">☀️ 날씨 한눈에</div>
+  <div class="nav-links">
+    <a href="#today">오늘</a>
+    <a href="#hourly">시간별</a>
+    <a href="#weekly">주간 예보</a>
+    <a href="#tips">날씨 팁</a>
+  </div>
+</nav>
+
+<main>
+  <section class="panel" id="today">
+    <div class="eyebrow">대한민국 · <span id="today-date">날짜를 불러오는 중...</span></div>
+    <div class="hero-grid">
+      <div>
+        <h1>맑고 화창한 하루!</h1>
+        <div class="temperature">16°</div>
+        <div class="status">☀️ 맑음 · Sunny</div>
+        <p>햇살이 밝게 비치는 기분 좋은 날이에요.</p>
+        <div class="tags">
+          <span class="tag">☀️ 맑음</span>
+          <span class="tag">🌡️ 16°C</span>
+          <span class="tag">🍃 산책하기 좋은 날</span>
+        </div>
+      </div>
+      <div class="sun-icon" aria-label="태양">☀️</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading"><h2>🌡️ 오늘의 날씨 정보</h2><span class="small-note">오늘</span></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-icon">🌡️</div><span class="stat-label">체감 온도</span><span class="stat-value">16°C</span></div>
+      <div class="stat"><div class="stat-icon">💧</div><span class="stat-label">습도</span><span class="stat-value">45%</span></div>
+      <div class="stat"><div class="stat-icon">💨</div><span class="stat-label">바람</span><span class="stat-value">약함</span></div>
+      <div class="stat"><div class="stat-icon">🌧️</div><span class="stat-label">강수 확률</span><span class="stat-value">10%</span></div>
+      <div class="stat"><div class="stat-icon">☀️</div><span class="stat-label">자외선 지수</span><span class="stat-value">보통</span></div>
+      <div class="stat"><div class="stat-icon">👁️</div><span class="stat-label">시야</span><span class="stat-value">좋음</span></div>
+    </div>
+  </section>
+
+  <section class="panel" id="hourly">
+    <div class="section-heading"><h2>🕒 시간별 예보</h2><span class="small-note">예시 정보</span></div>
+    <div class="hourly">
+      <div class="forecast-card"><div class="forecast-time">오전 9시</div><div class="weather-icon">🌤️</div><div class="forecast-temp">13°</div></div>
+      <div class="forecast-card"><div class="forecast-time">오전 12시</div><div class="weather-icon">☀️</div><div class="forecast-temp">16°</div></div>
+      <div class="forecast-card"><div class="forecast-time">오후 3시</div><div class="weather-icon">☀️</div><div class="forecast-temp">17°</div></div>
+      <div class="forecast-card"><div class="forecast-time">오후 6시</div><div class="weather-icon">🌇</div><div class="forecast-temp">14°</div></div>
+    </div>
+  </section>
+
+  <section class="panel" id="weekly">
+    <div class="section-heading"><h2>📅 7일 날씨 미리 보기</h2><span class="small-note">예시 정보</span></div>
+    <div class="week">
+      <div class="forecast-card"><div class="forecast-time">월</div><div class="weather-icon">☀️</div><div class="forecast-temp">16° / 9°</div></div>
+      <div class="forecast-card"><div class="forecast-time">화</div><div class="weather-icon">🌤️</div><div class="forecast-temp">17° / 10°</div></div>
+      <div class="forecast-card"><div class="forecast-time">수</div><div class="weather-icon">☀️</div><div class="forecast-temp">18° / 11°</div></div>
+      <div class="forecast-card"><div class="forecast-time">목</div><div class="weather-icon">☁️</div><div class="forecast-temp">15° / 10°</div></div>
+      <div class="forecast-card"><div class="forecast-time">금</div><div class="weather-icon">🌦️</div><div class="forecast-temp">14° / 8°</div></div>
+      <div class="forecast-card"><div class="forecast-time">토</div><div class="weather-icon">🌤️</div><div class="forecast-temp">16° / 9°</div></div>
+      <div class="forecast-card"><div class="forecast-time">일</div><div class="weather-icon">☀️</div><div class="forecast-temp">17° / 10°</div></div>
+    </div>
+  </section>
+
+  <section class="panel" id="tips">
+    <div class="section-heading"><h2>🎒 오늘의 날씨 팁</h2></div>
+    <div class="tips">
+      <div class="tip"><div class="tip-icon">🧥</div><div><strong>옷차림</strong><p>선선할 수 있으니 가벼운 겉옷을 챙기세요.</p></div></div>
+      <div class="tip"><div class="tip-icon">🚶</div><div><strong>야외 활동</strong><p>맑은 날씨를 즐기며 산책해 보세요.</p></div></div>
+      <div class="tip"><div class="tip-icon">💧</div><div><strong>수분 섭취</strong><p>목이 마르기 전에 물을 마시는 것이 좋아요.</p></div></div>
+      <div class="tip"><div class="tip-icon">🌞</div><div><strong>햇빛 조심</strong><p>오래 야외에 있을 때는 햇빛을 피하며 쉬세요.</p></div></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading"><h2>💧 습도 정보</h2><span class="small-note">45%</span></div>
+    <p>현재 표시된 습도는 45%입니다. 쾌적한 환경을 유지하도록 환기를 해 보세요.</p>
+    <div class="bar-wrap"><div class="bar"></div></div>
+    <p class="small-note">습도 표시 막대는 디자인 예시입니다.</p>
+  </section>
+
+  <p class="notice">※ 이 웹사이트는 웹 제작 연습을 위한 프로젝트입니다.<br>
+  온도, 습도, 시간별 예보와 주간 예보는 실제 실시간 관측 데이터가 아닌 예시 값입니다.</p>
+</main>
+
+<footer>
+  <div>오늘도 맑고 행복한 하루 보내세요! ☀️</div>
+  <a class="back-top" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">↑ 맨 위로</a>
+  <div class="footer-big">유워와</div>
+  <div class="small-note">날씨 한눈에 · Weather Site V2</div>
+</footer>
+
+<script>
+function updateDate() {
+  const date = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  }).format(new Date());
+  document.getElementById('today-date').textContent = date;
+}
+updateDate();
+setInterval(updateDate, 60000);
+</script>
+</body>
+</html>
